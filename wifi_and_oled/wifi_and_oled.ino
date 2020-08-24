@@ -34,16 +34,17 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 
 int pin = 0;
 int i = 0;
+int inrotary = 1;
 
 void setup() {
 
     // Rotary encoder
 
-    //pinMode(CLK,INPUT);
-    //pinMode(DT,INPUT);
-    //pinMode(SW, INPUT_PULLUP);
+    pinMode(CLK,INPUT);
+    pinMode(DT,INPUT);
+    pinMode(SW, INPUT_PULLUP);
 
-    // initialize GPIO 2 as an output.
+    // initialize GPIO 0 as an output.
     pinMode(pin, OUTPUT);
     Wire.begin(); 
     Serial.begin(115200);
@@ -82,9 +83,13 @@ void setup() {
 }
 
 void checkForRotary() {
-   while(inrotary == 1) {
+    millis();
+    while(inrotary == 1) {
         // Read the current state of CLK
         currentStateCLK = digitalRead(CLK);
+
+        // Read the button state
+        int btnState = digitalRead(SW);
        
         // If last and current state of CLK are different, then pulse occurred
         // React to only 1 state change to avoid double count
@@ -96,23 +101,21 @@ void checkForRotary() {
                 currentDir ="CCW";
             } else {
             // Encoder is rotating CW so increment
-            counter ++;
-            currentDir ="CW";
+                counter ++;
+                currentDir ="CW";
             }
             display.clearDisplay();
             display.setCursor(0,0);
             display.print(currentDir);
             display.print(" | ");
             display.println(counter);
+            display.println(btnState);
             display.display();
             delay(100);
         }
 
         // Remember last CLK state
         lastStateCLK = currentStateCLK;
-
-        // Read the button state
-        int btnState = digitalRead(SW);
 
         //If we detect LOW signal, button is pressed
         if (btnState == LOW) {
@@ -121,16 +124,9 @@ void checkForRotary() {
             if (millis() - lastButtonPress > 50) {
                     display.clearDisplay();
                     display.setCursor(0,0);
-                    display.println("Button pressed!");
+                    display.println(lastButtonPress);
+                    display.println(btnState);
                     display.display();
-                    delay(100);
-            }
-            else {
-                display.clearDisplay();
-                    display.setCursor(0,0);
-                    display.println("Press a button.");
-                    display.display();
-                    delay(100);
             }
             // Remember last button press event
             lastButtonPress = millis();
