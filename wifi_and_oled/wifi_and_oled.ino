@@ -10,7 +10,7 @@ const char* password = "231402922";     // The password of the Wi-Fi network
 // Rotary stuff
 #define CLK 14
 #define DT 12
-#define SW 16
+#define SW 13 // Didn't work on pin 16 for some reason. Reserved for some NodeMCU function? The onboard led lit up from this input
 int counter = 0;
 int currentStateCLK;
 int lastStateCLK;
@@ -18,19 +18,21 @@ String currentDir ="";
 unsigned long lastButtonPress = 0;
 
 // RGB LED
-//#define ledR 3
-//#define ledG 4
-//#define ledB 5
+#define LED_R 3
+#define LED_G 0
+#define LED_B 2
 
 
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 
 // OLED FeatherWing buttons map to different pins depending on board:
+/*
 #if defined(ESP8266)
   #define BUTTON_A  0
   #define BUTTON_B 16
   #define BUTTON_C  2
 #endif
+*/
 
 int pin = 0;
 int i = 0;
@@ -44,10 +46,16 @@ void setup() {
     pinMode(DT,INPUT);
     pinMode(SW, INPUT_PULLUP);
 
+    // RGB led
+
+    pinMode(LED_R, OUTPUT);
+    pinMode(LED_G, OUTPUT);
+    pinMode(LED_B, OUTPUT);
+
     // initialize GPIO 0 as an output.
     pinMode(pin, OUTPUT);
     Wire.begin(); 
-    Serial.begin(115200);
+    Serial.begin(9600);
     WiFi.begin(ssid, password);
 
     // Oled stuff
@@ -111,6 +119,9 @@ void checkForRotary() {
             display.println(counter);
             display.println(btnState);
             display.display();
+            analogWrite(LED_R, 255);
+            analogWrite(LED_G, counter * 4);
+            analogWrite(LED_B, 0);
             delay(100);
         }
 
