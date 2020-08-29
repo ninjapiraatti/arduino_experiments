@@ -7,7 +7,7 @@
 const char* ssid     = "e33235";         // The SSID (name) of the Wi-Fi network you want to connect to
 const char* password = "231402922";     // The password of the Wi-Fi network
 
-// Rotary stuff
+// Rotary definitions and variables
 #define CLK 14
 #define DT 12
 #define SW 13 // Didn't work on pin 16 for some reason. Reserved for some NodeMCU function? The onboard led lit up from this input
@@ -16,28 +16,19 @@ int currentStateCLK;
 int lastStateCLK;
 String currentDir ="";
 unsigned long lastButtonPress = 0;
+int pin = 0;
+int i = 0;
+int btnState = digitalRead(SW);
 
 // RGB LED
 #define LED_R 3
 #define LED_G 0
 #define LED_B 2
 
-// Menus
+// MENU FUNCTIONS AND DEFS
 
 #define MENU_MIN 1
 #define MENU_MAX 3
-
-
-Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
-
-// OLED FeatherWing buttons map to different pins depending on board:
-/*
-#if defined(ESP8266)
-  #define BUTTON_A  0
-  #define BUTTON_B 16
-  #define BUTTON_C  2
-#endif
-*/
 
 int ledBlue(void) {
     analogWrite(LED_G, 255);
@@ -55,43 +46,41 @@ struct menu {
     option  optn;
 };
 
-int pin = 0;
-int i = 0;
-int btnState = digitalRead(SW);
-
 option ledoption = {"ledoption", ledBlue};
-// menus
+
 menu currentmenu;
+menu menuoption;
 menu menu_main = {"Main menu", 1, NULL};
 menu menu_leds = {"Leds", 2, ledoption};
 menu menu_display = {"Display", 3, NULL};
 menu menu_interwebs = {"Interwebs", 4, NULL};
 
+
+// Oled declaration
+Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
+
+
+
+
 void setup() {
     // Rotary encoder
-
     pinMode(CLK,INPUT);
     pinMode(DT,INPUT);
     pinMode(SW, INPUT_PULLUP);
 
     // RGB led
-
     pinMode(LED_R, OUTPUT);
     pinMode(LED_G, OUTPUT);
     pinMode(LED_B, OUTPUT);
-
     analogWrite(LED_R, 0);
     analogWrite(LED_G, 0);
     analogWrite(LED_B, 0);
 
-    // initialize GPIO 0 as an output.
-    pinMode(pin, OUTPUT);
     Wire.begin(); 
     Serial.begin(9600);
     WiFi.begin(ssid, password);
 
-    // Oled stuff
-
+    // Oled init
     Serial.println("OLED FeatherWing test");
     // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C); // Address 0x3C for 128x32
@@ -139,14 +128,13 @@ void wifiStatus() {
 
 void rotaryMenu() {
     millis();
+    // Set current menu to main
     currentmenu = menu_main;
-    menu menuoption;
     // Read the current state of CLK
     currentStateCLK = digitalRead(CLK);
 
     // Read the button state
     btnState = digitalRead(SW);
-    
     // If last and current state of CLK are different, then pulse occurred
     // React to only 1 state change to avoid double count
     if (currentStateCLK != lastStateCLK  && currentStateCLK == 1){
@@ -192,10 +180,10 @@ void rotaryMenu() {
                 display.setCursor(0,0);
                 display.print("Button pressed ");
                 display.println(btnState);
+                display.print("Menu: ");
+                display.println(menuoption.name);
                 display.display();
-                if (menu_digit == 1) {
-                    menu_leds.optn.action();
-                }
+                menuoption.optn.action();
         }
         // Remember last button press event
         lastButtonPress = millis();
