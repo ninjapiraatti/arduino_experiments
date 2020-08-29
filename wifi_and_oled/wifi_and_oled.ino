@@ -22,6 +22,11 @@ unsigned long lastButtonPress = 0;
 #define LED_G 0
 #define LED_B 2
 
+// Menus
+
+#define MENU_MIN 1
+#define MENU_MAX 3
+
 
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 
@@ -36,7 +41,9 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 
 int pin = 0;
 int i = 0;
-int inrotary = 1;
+int inmainmenu = 1;
+int btnState = digitalRead(SW);
+int menu;
 
 void setup() {
 
@@ -90,14 +97,94 @@ void setup() {
     display.display(); // actually display all of the above
 }
 
-void checkForRotary() {
+void wifiStatus() {
+    while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
+        display.print(++i); Serial.print(' ');
+        display.display();
+        display.setCursor(0,0);
+        display.clearDisplay();
+    }
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println("We has connection.");  
+    display.println("IP address:");
+    display.println(WiFi.localIP()); 
+    display.display();
+}
+
+int enterMenu (int menu) {
+    inmainmenu = 0;
+    if (menu == 1)
+        menuLeds();
+    if (menu == 2)
+        menuDisplay();
+    if (menu == 3)
+        menuInterwebs();
+    return (0);
+}
+
+int menuLeds() {
+    while (menu == 1) {
+        display.println("Led menu");
+        display.println(inmainmenu);
+        display.display();
+        btnState = digitalRead(SW);
+        analogWrite(LED_R, 0);
+        analogWrite(LED_G, counter * 4);
+        analogWrite(LED_B, 255);
+        if (btnState == LOW) {
+            display.clearDisplay();
+            inmainmenu = 1;
+            return (0);
+        }
+    }
+}
+
+int menuDisplay() {
+    while (menu == 2) {
+        btnState = digitalRead(SW);
+        display.println("Display menu");
+        display.println(inmainmenu);
+        display.display();
+        if (btnState == LOW) {
+            display.clearDisplay();
+            inmainmenu = 1;
+            return (0);
+        }
+    }
+}
+
+int menuInterwebs() {
+    while (menu == 3) {
+        btnState = digitalRead(SW);
+        display.println("Internets menu");
+        display.println(inmainmenu);
+        display.display();
+        if (btnState == LOW) {
+            display.clearDisplay();
+            display.println("Button pressed");
+            display.display();
+            btnState = digitalRead(SW);
+            //inmainmenu = 1;
+            return (0);
+        }
+    }
+}
+
+void rotaryMenu() {
     millis();
-    while(inrotary == 1) {
+    if (inmainmenu == 0) {
+        display.clearDisplay();
+        display.setCursor(0,0);
+        display.print("inmainmenu: ");
+        display.println(inmainmenu);
+    }
+    if (inmainmenu == 1) {
         // Read the current state of CLK
         currentStateCLK = digitalRead(CLK);
 
         // Read the button state
-        int btnState = digitalRead(SW);
+        btnState = digitalRead(SW);
        
         // If last and current state of CLK are different, then pulse occurred
         // React to only 1 state change to avoid double count
@@ -105,23 +192,24 @@ void checkForRotary() {
         // If the DT state is different than the CLK state then
         // the encoder is rotating CCW so decrement
             if (digitalRead(DT) != currentStateCLK) {
-                counter --;
-                currentDir ="CCW";
+                menu--;
             } else {
             // Encoder is rotating CW so increment
-                counter ++;
-                currentDir ="CW";
+                menu++;
             }
+            if (menu > MENU_MAX)
+                menu = MENU_MIN;
+            if (menu < MENU_MIN)
+                menu = MENU_MAX;
             display.clearDisplay();
             display.setCursor(0,0);
-            display.print(currentDir);
-            display.print(" | ");
-            display.println(counter);
-            display.println(btnState);
+            display.print("Bs: ");
+            display.print(btnState);
+            display.print(" Mn: ");
+            display.print(menu);
+            display.print(" Main: ");
+            display.println(inmainmenu);
             display.display();
-            analogWrite(LED_R, 255);
-            analogWrite(LED_G, counter * 4);
-            analogWrite(LED_B, 0);
             delay(100);
         }
 
@@ -135,9 +223,9 @@ void checkForRotary() {
             if (millis() - lastButtonPress > 50) {
                     display.clearDisplay();
                     display.setCursor(0,0);
-                    display.println(lastButtonPress);
                     display.println(btnState);
                     display.display();
+                    enterMenu(menu);
             }
             // Remember last button press event
             lastButtonPress = millis();
@@ -145,27 +233,9 @@ void checkForRotary() {
         // Put in a slight delay to help debounce the reading
         delay(1);
     }
-}
-
-void wifiStatus() {
-    while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
-        display.print(++i); Serial.print(' ');
-        display.display();
-        display.setCursor(0,0);
-        delay(100);
-        display.clearDisplay();
-    }
-    display.clearDisplay();
-    display.setCursor(0,0);
-    display.println("We has connection.");  
-    display.println("IP address:");
-    display.println(WiFi.localIP()); 
-    display.display();
-    delay(100);
+    delay(1);
 }
 
 void loop() {
-    checkForRotary();
-    delay(1000);
-    wifiStatus();
+    rotaryMenu();
 }
