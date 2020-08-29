@@ -4,36 +4,19 @@
 #include <Adafruit_SSD1306.h>
 #include <ESP8266WiFi.h>
 
-const char* ssid     = "e33235";         // The SSID (name) of the Wi-Fi network you want to connect to
-const char* password = "231402922";     // The password of the Wi-Fi network
-
 // Rotary definitions and variables
 #define CLK 14
 #define DT 12
 #define SW 13 // Didn't work on pin 16 for some reason. Reserved for some NodeMCU function? The onboard led lit up from this input
-int menu_digit = 0;
-int currentStateCLK;
-int lastStateCLK;
-String currentDir ="";
-unsigned long lastButtonPress = 0;
-int pin = 0;
-int i = 0;
-int btnState = digitalRead(SW);
 
 // RGB LED
 #define LED_R 3
 #define LED_G 0
 #define LED_B 2
 
-// MENU FUNCTIONS AND DEFS
-
+// MENU DEFS
 #define MENU_MIN 1
 #define MENU_MAX 3
-
-int ledBlue(void) {
-    analogWrite(LED_G, 255);
-    return (0);
-}
 
 struct option {
     char    *name;
@@ -46,20 +29,43 @@ struct menu {
     option  optn;
 };
 
-option ledoption = {"ledoption", ledBlue};
-
-menu currentmenu;
-menu menuoption;
-menu menu_main = {"Main menu", 1, NULL};
-menu menu_leds = {"Leds", 2, ledoption};
-menu menu_display = {"Display", 3, NULL};
-menu menu_interwebs = {"Interwebs", 4, NULL};
-
-
 // Oled declaration
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 
+int currentStateCLK;
+int lastStateCLK;
+String currentDir ="";
+unsigned long lastButtonPress = 0;
+int i = 0;
+int btnState = digitalRead(SW);
+const char* ssid     = "e33235";         // The SSID (name) of the Wi-Fi network you want to connect to
+const char* password = "231402922";     // The password of the Wi-Fi network
 
+int scrollMessage(void) {
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println("Lorem ipsum dolor sit amet viela vahan lisaa tekstia jotta skrolli nakyy.");
+    display.display();
+    display.startscrollleft(0x00, 0x0F);
+    delay(5000);
+    display.stopscroll();
+}
+
+int ledBlue(void) {
+    analogWrite(LED_G, 255);
+    return (0);
+}
+
+option ledoption = {"Led Option", ledBlue};
+option displayoption = {"Display Option", scrollMessage};
+
+menu currentmenu;
+menu menuoption;
+int menu_digit = 0;
+menu menu_main = {"Main menu", 1, NULL};
+menu menu_leds = {"Leds", 2, ledoption};
+menu menu_display = {"Display", 3, displayoption};
+menu menu_interwebs = {"Interwebs", 4, NULL};
 
 
 void setup() {
