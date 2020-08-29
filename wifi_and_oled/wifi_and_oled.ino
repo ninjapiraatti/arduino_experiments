@@ -11,7 +11,7 @@ const char* password = "231402922";     // The password of the Wi-Fi network
 #define CLK 14
 #define DT 12
 #define SW 13 // Didn't work on pin 16 for some reason. Reserved for some NodeMCU function? The onboard led lit up from this input
-int counter = 0;
+int menu_digit = 0;
 int currentStateCLK;
 int lastStateCLK;
 String currentDir ="";
@@ -39,14 +39,35 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 #endif
 */
 
+int ledBlue(void) {
+    analogWrite(LED_G, 255);
+    return (0);
+}
+
+struct option {
+    char    *name;
+    int     (*action)(void);
+};
+
+struct menu {
+    char    *name;
+    int     i;
+    option  optn;
+};
+
 int pin = 0;
 int i = 0;
-int inmainmenu = 1;
 int btnState = digitalRead(SW);
-int menu;
+
+option ledoption = {"ledoption", ledBlue};
+// menus
+menu currentmenu;
+menu menu_main = {"Main menu", 1, NULL};
+menu menu_leds = {"Leds", 2, ledoption};
+menu menu_display = {"Display", 3, NULL};
+menu menu_interwebs = {"Interwebs", 4, NULL};
 
 void setup() {
-
     // Rotary encoder
 
     pinMode(CLK,INPUT);
@@ -58,6 +79,10 @@ void setup() {
     pinMode(LED_R, OUTPUT);
     pinMode(LED_G, OUTPUT);
     pinMode(LED_B, OUTPUT);
+
+    analogWrite(LED_R, 0);
+    analogWrite(LED_G, 0);
+    analogWrite(LED_B, 0);
 
     // initialize GPIO 0 as an output.
     pinMode(pin, OUTPUT);
@@ -112,127 +137,70 @@ void wifiStatus() {
     display.display();
 }
 
-int enterMenu (int menu) {
-    inmainmenu = 0;
-    if (menu == 1)
-        menuLeds();
-    if (menu == 2)
-        menuDisplay();
-    if (menu == 3)
-        menuInterwebs();
-    return (0);
-}
-
-int menuLeds() {
-    while (menu == 1) {
-        display.println("Led menu");
-        display.println(inmainmenu);
-        display.display();
-        btnState = digitalRead(SW);
-        analogWrite(LED_R, 0);
-        analogWrite(LED_G, counter * 4);
-        analogWrite(LED_B, 255);
-        if (btnState == LOW) {
-            display.clearDisplay();
-            inmainmenu = 1;
-            return (0);
-        }
-    }
-}
-
-int menuDisplay() {
-    while (menu == 2) {
-        btnState = digitalRead(SW);
-        display.println("Display menu");
-        display.println(inmainmenu);
-        display.display();
-        if (btnState == LOW) {
-            display.clearDisplay();
-            inmainmenu = 1;
-            return (0);
-        }
-    }
-}
-
-int menuInterwebs() {
-    while (menu == 3) {
-        btnState = digitalRead(SW);
-        display.println("Internets menu");
-        display.println(inmainmenu);
-        display.display();
-        if (btnState == LOW) {
-            display.clearDisplay();
-            display.println("Button pressed");
-            display.display();
-            btnState = digitalRead(SW);
-            //inmainmenu = 1;
-            return (0);
-        }
-    }
-}
-
 void rotaryMenu() {
     millis();
-    if (inmainmenu == 0) {
+    currentmenu = menu_main;
+    menu menuoption;
+    // Read the current state of CLK
+    currentStateCLK = digitalRead(CLK);
+
+    // Read the button state
+    btnState = digitalRead(SW);
+    
+    // If last and current state of CLK are different, then pulse occurred
+    // React to only 1 state change to avoid double count
+    if (currentStateCLK != lastStateCLK  && currentStateCLK == 1){
+    // If the DT state is different than the CLK state then
+    // the encoder is rotating CCW so decrement
+        if (digitalRead(DT) != currentStateCLK) {
+            menu_digit--;
+        } else {
+        // Encoder is rotating CW so increment
+            menu_digit++;
+        }
+        if (menu_digit > MENU_MAX)
+            menu_digit = MENU_MIN;
+        if (menu_digit < MENU_MIN)
+            menu_digit = MENU_MAX;
+        if (menu_digit == 1)
+            menuoption = menu_leds;
+        if (menu_digit == 2)
+            menuoption = menu_display;
+        if (menu_digit == 3)
+            menuoption = menu_interwebs;
         display.clearDisplay();
         display.setCursor(0,0);
-        display.print("inmainmenu: ");
-        display.println(inmainmenu);
+        display.print("Bs: ");
+        display.print(btnState);
+        display.print(" | ");
+        display.print(menu_digit);
+        display.print(": ");
+        display.print(menuoption.name);
+        display.display();
+        delay(10);
     }
-    if (inmainmenu == 1) {
-        // Read the current state of CLK
-        currentStateCLK = digitalRead(CLK);
 
-        // Read the button state
-        btnState = digitalRead(SW);
-       
-        // If last and current state of CLK are different, then pulse occurred
-        // React to only 1 state change to avoid double count
-        if (currentStateCLK != lastStateCLK  && currentStateCLK == 1){
-        // If the DT state is different than the CLK state then
-        // the encoder is rotating CCW so decrement
-            if (digitalRead(DT) != currentStateCLK) {
-                menu--;
-            } else {
-            // Encoder is rotating CW so increment
-                menu++;
-            }
-            if (menu > MENU_MAX)
-                menu = MENU_MIN;
-            if (menu < MENU_MIN)
-                menu = MENU_MAX;
-            display.clearDisplay();
-            display.setCursor(0,0);
-            display.print("Bs: ");
-            display.print(btnState);
-            display.print(" Mn: ");
-            display.print(menu);
-            display.print(" Main: ");
-            display.println(inmainmenu);
-            display.display();
-            delay(100);
+    // Remember last CLK state
+    lastStateCLK = currentStateCLK;
+
+    //If we detect LOW signal, button is pressed
+    if (btnState == LOW) {
+    //if 50ms have passed since last LOW pulse, it means that the
+    //button has been pressed, released and pressed again
+        if (millis() - lastButtonPress > 50) {
+                display.clearDisplay();
+                display.setCursor(0,0);
+                display.print("Button pressed ");
+                display.println(btnState);
+                display.display();
+                if (menu_digit == 1) {
+                    menu_leds.optn.action();
+                }
         }
-
-        // Remember last CLK state
-        lastStateCLK = currentStateCLK;
-
-        //If we detect LOW signal, button is pressed
-        if (btnState == LOW) {
-        //if 50ms have passed since last LOW pulse, it means that the
-        //button has been pressed, released and pressed again
-            if (millis() - lastButtonPress > 50) {
-                    display.clearDisplay();
-                    display.setCursor(0,0);
-                    display.println(btnState);
-                    display.display();
-                    enterMenu(menu);
-            }
-            // Remember last button press event
-            lastButtonPress = millis();
-        }
-        // Put in a slight delay to help debounce the reading
-        delay(1);
+        // Remember last button press event
+        lastButtonPress = millis();
     }
+    // Put in a slight delay to help debounce the reading
     delay(1);
 }
 
