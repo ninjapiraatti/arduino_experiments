@@ -4,15 +4,15 @@
 #include <Adafruit_SSD1306.h>
 #include <ESP8266WiFi.h>
 
-// Rotary definitions and variables
-#define CLK 14
-#define DT 12
-#define SW 13 // Didn't work on pin 16 for some reason. Reserved for some NodeMCU function? The onboard led lit up from this input
+// Rotary definitions and variables. Esp8266 comes with hardcoded aliases so I can use D1 D2 etc
+#define CLK D0
+#define DT D6
+#define SW D5
 
 // RGB LED
-#define LED_R 3
-#define LED_G 0
-#define LED_B 2
+#define LED_R D7
+#define LED_G D3
+#define LED_B D4
 
 // MENU DEFS
 #define MENU_MIN 1
