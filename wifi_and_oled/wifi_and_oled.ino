@@ -36,7 +36,6 @@ int currentStateCLK;
 int lastStateCLK;
 String currentDir ="";
 unsigned long lastButtonPress = 0;
-int i = 0;
 int btnState = digitalRead(SW);
 const char* ssid     = "e33235";         // The SSID (name) of the Wi-Fi network you want to connect to
 const char* password = "231402922";     // The password of the Wi-Fi network
@@ -56,8 +55,35 @@ int ledBlue(void) {
     return (0);
 }
 
+int wifiStatus() {
+    int i = 1000;
+    while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
+        display.println("Trying to connect...");
+        display.print(--i); Serial.print(' ');
+        display.display();
+        display.setCursor(0,0);
+        display.clearDisplay();
+        if (i == 0) {
+            display.setCursor(0,0);
+            display.clearDisplay();
+            display.println("Failed to connect.");
+            display.display();
+            delay(2000);
+            return (0);
+        }
+    }
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println("We has connection.");  
+    display.println("IP address:");
+    display.println(WiFi.localIP()); 
+    display.display();
+    return (1);
+}
+
 option ledoption = {"Led Option", ledBlue};
 option displayoption = {"Display Option", scrollMessage};
+option wifioption = {"Wifi Option", wifiStatus};
 
 menu currentmenu;
 menu menuoption;
@@ -65,7 +91,7 @@ int menu_digit = 0;
 menu menu_main = {"Main menu", 1, NULL};
 menu menu_leds = {"Leds", 2, ledoption};
 menu menu_display = {"Display", 3, displayoption};
-menu menu_interwebs = {"Interwebs", 4, NULL};
+menu menu_interwebs = {"Interwebs", 4, wifioption};
 
 
 void setup() {
@@ -115,21 +141,6 @@ void setup() {
     display.println("Sending val #0");
     display.setCursor(0,0);
     display.display(); // actually display all of the above
-}
-
-void wifiStatus() {
-    while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
-        display.print(++i); Serial.print(' ');
-        display.display();
-        display.setCursor(0,0);
-        display.clearDisplay();
-    }
-    display.clearDisplay();
-    display.setCursor(0,0);
-    display.println("We has connection.");  
-    display.println("IP address:");
-    display.println(WiFi.localIP()); 
-    display.display();
 }
 
 void rotaryMenu() {
