@@ -35,9 +35,9 @@ int val;
 int rot_output;
 int rot_old;
 int player_position;
-int enemy_row;
-int enemy_col;
-int enemy_ori;
+int enemy_row = 2;
+int enemy_col = 2;
+int enemy_ori = 0;
 unsigned long lastButtonPress = 0;
 
 
@@ -52,8 +52,9 @@ void setup() {
   lc.setIntensity(0,8);
   // Clear the display
   lc.clearDisplay(0);
-    pinMode (outputA,INPUT);
-    pinMode (outputB,INPUT);
+    //pinMode (outputA,INPUT);
+    //pinMode (outputB,INPUT);
+    pinMode(SW, INPUT_PULLUP);
     Serial.begin (9600);
     aLastState = digitalRead(outputA);
     player_position = 0;
@@ -77,18 +78,28 @@ void drawRotary(int rot_output, int btnState){
             player_position = 0;
         else
             player_position++;
+        Serial.print("Position: ");
+        Serial.print(player_position);
+        Serial.print(" btnState: ");
+        Serial.println(btnState);
     }
-    else if (rot_output < rot_old)
+    else if (rot_output < rot_old) {
         if (player_position == 0)
             player_position = 30;
         else
             player_position--;
+        Serial.print("Position: ");
+        Serial.print(player_position);
+        Serial.print(" btnState: ");
+        Serial.println(btnState);
+    }
     lc.clearDisplay(0);
     drawPlayer(player_position);
     drawEnemy();
     rot_old = rot_output;
 }
 
+/*
 int      readRotary() { 
    aState = digitalRead(outputA); // Reads the "current" state of the outputA
    // If the previous and the current state of the outputA are different, that means a Pulse has occured
@@ -106,6 +117,7 @@ int      readRotary() {
    aLastState = aState; // Updates the previous state of the outputA with the current state
    return(counter);
 }
+*/
 
 int     checkForHit() {
     if (player_position < 8) {
@@ -147,7 +159,7 @@ int     checkForHit() {
     } else {
       if (enemy_ori == 1)
         return (0);
-      if (player_position - 21 == enemy_row)
+      if (31 - player_position == enemy_row)
         Serial.print("HIT");
       Serial.print(player_position);
       Serial.print(" | ");
@@ -182,6 +194,7 @@ int     drawEnemy() {
 }
 
 int     readButton() {
+    millis();
     btnState = digitalRead(SW);
     //Serial.print(btnState);
   //If we detect LOW signal, button is pressed
