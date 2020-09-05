@@ -27,6 +27,9 @@ Encoder myEnc(6, 8);
  int aState;
  int aLastState;
  int btnState;  
+ int score = 0;
+ int lives = 5;
+ long unsigned int enemylifespan = 0;
 
 LedControl lc=LedControl(12,11,10,1);
 
@@ -38,13 +41,17 @@ int player_position;
 int enemy_row = 2;
 int enemy_col = 2;
 int enemy_ori = 0;
+int difficulty = 3000;
 unsigned long lastButtonPress = 0;
 
 
 
 byte row[8]= {B10000000,B01000000,B00100000,B00010000,B00001000,B00000100,B00000010,B00000001};
+byte ex1[8]= {B10000001,B01000010,B00100100,B00011000,B00011000,B00100100,B01000010,B10000001};
+byte cross[8]= {B00000000,B00011000,B00011000,B01111110,B01111110,B00011000,B00011000,B00000000};
+byte over1[8]= {B10000001,B10000001,B10000001,B10000001,B10000001,B10000001,B10000001,B10000001};
 byte cols[2]= {B10000000,B00000001};
-byte fullrow[1]= {B11111111};
+byte fullrow[1] = {B11111111};
 
 void setup() {
   lc.shutdown(0,false);
@@ -60,6 +67,14 @@ void setup() {
     player_position = 0;
 }
 
+void printByte(byte character [])
+{
+  int i = 0;
+  for(i=0;i<8;i++)
+  {
+    lc.setRow(0,i,character[i]);
+  }
+}
 
 void    drawPlayer(int player_position) {
     if (player_position < 8)
@@ -124,7 +139,7 @@ int     checkForHit() {
       if (enemy_ori == 0)
         return (0);
       if (player_position == enemy_col)
-        Serial.print("HIT");
+        return (1);
       Serial.print(player_position);
       Serial.print(" | ");
       Serial.print(enemy_row);
@@ -136,7 +151,7 @@ int     checkForHit() {
       if (enemy_ori == 1)
         return (0);
       if (player_position - 7 == enemy_row)
-        Serial.print("HIT");
+        return (1);
       Serial.print(player_position);
       Serial.print(" | ");
       Serial.print(enemy_row);
@@ -148,7 +163,7 @@ int     checkForHit() {
       if (enemy_ori == 0)
         return (0);
       if (21 - player_position == enemy_col)
-        Serial.print("HIT");
+        return (1);
       Serial.print(player_position);
       Serial.print(" | ");
       Serial.print(enemy_row);
@@ -160,7 +175,7 @@ int     checkForHit() {
       if (enemy_ori == 1)
         return (0);
       if (31 - player_position == enemy_row)
-        Serial.print("HIT");
+        return (1);
       Serial.print(player_position);
       Serial.print(" | ");
       Serial.print(enemy_row);
@@ -169,6 +184,7 @@ int     checkForHit() {
       Serial.print(" | ");
       Serial.println(enemy_ori);
     }
+  return (0);
 }
 
 int     generateEnemy () {
@@ -179,6 +195,8 @@ int     generateEnemy () {
     } else {
       enemy_ori =  1;
     }
+    enemylifespan = millis();
+    difficulty -= 50;
     return (0);
 }
 
@@ -193,11 +211,37 @@ int     drawEnemy() {
     return (0);
 }
 
+int     gameover() {
+    //printByte(over1);
+    byte scorebytes[8] = {B00000000};
+    lc.clearDisplay(0);
+    Serial.println(itoa(score, scorebytes, 2));
+    lc.setRow(0,0,scorebytes[0]);
+    lc.setRow(0,1,scorebytes[1]);
+    lc.setRow(0,2,scorebytes[2]);
+    lc.setRow(0,3,scorebytes[3]);
+    lc.setRow(0,4,scorebytes[4]);
+    lc.setRow(0,5,scorebytes[5]);
+    lc.setRow(0,6,scorebytes[6]);
+    lc.setRow(0,7,scorebytes[7]);
+    delay(4000);
+    score = 0;
+    lives = 5;
+    difficulty = 3000;
+}
+
 int     readButton() {
     millis();
     btnState = digitalRead(SW);
     //Serial.print(btnState);
   //If we detect LOW signal, button is pressed
+    if (millis() - enemylifespan > difficulty) {
+      printByte(ex1);
+      delay(300);
+      lives--;
+      generateEnemy();
+      return(btnState);
+    }
     if (btnState == LOW) {
     //if 50ms have passed since last LOW pulse, it means that the
     //button has been pressed, released and pressed again
@@ -227,7 +271,15 @@ int     readButton() {
           else
               lc.setRow(0,(31 - player_position),fullrow[0]);
           Serial.println("FIRE!");
-          checkForHit();
+          if (checkForHit() == 0) {
+            printByte(ex1);
+            lives--;
+          }
+          else {
+            printByte(cross);
+            score++;
+          }
+          delay(300);
           generateEnemy();
         }
         // Remember last button press event
@@ -247,7 +299,11 @@ void loop() {
   }
   rot_output = oldPosition / 4;
   btnState = readButton();
+  if (lives < 1) {
+    gameover();
+  } else {
   //Serial.println(btnState);
-  drawRotary(rot_output, btnState);
-  drawEnemy();
+    drawRotary(rot_output, btnState);
+    drawEnemy();
+  }
 }
