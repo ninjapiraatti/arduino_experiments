@@ -4,7 +4,7 @@
 //   Best Performance: both pins have interrupt capability
 //   Good Performance: only the first pin has interrupt capability
 //   Low Performance:  neither pin has interrupt capability
-Encoder myEnc(6, 8);
+Encoder myEnc(2, 3);
 //   avoid using pins with LEDs attached
 
 #include "LedControl.h"
@@ -114,25 +114,6 @@ void drawRotary(int rot_output, int btnState){
     rot_old = rot_output;
 }
 
-/*
-int      readRotary() { 
-   aState = digitalRead(outputA); // Reads the "current" state of the outputA
-   // If the previous and the current state of the outputA are different, that means a Pulse has occured
-   if (aState != aLastState){     
-     // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
-     if (digitalRead(outputB) != aState) { 
-       counter--;
-     } else {
-       counter++;
-     }
-     Serial.print("Position: ");
-     Serial.println(player_position);
-   } 
-   delay(1);
-   aLastState = aState; // Updates the previous state of the outputA with the current state
-   return(counter);
-}
-*/
 
 int     checkForHit() {
     if (player_position < 8) {
