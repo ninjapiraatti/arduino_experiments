@@ -1,3 +1,5 @@
+// This code is largely adapted from https://randomnerdtutorials.com/esp8266-dht11dht22-temperature-and-humidity-web-server-with-arduino-ide/
+
 #include <DHT.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
