@@ -1,5 +1,6 @@
 // This code is largely adapted from https://randomnerdtutorials.com/esp8266-dht11dht22-temperature-and-humidity-web-server-with-arduino-ide/
 
+//#include <LiquidCrystal.h>
 #include <DHT.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -13,11 +14,14 @@
 #define LED_5 D6
 #define LED_6 D7
 
+// LCD
+
 // Set dht12 i2c comunication on default Wire pin
 #define DHTPIN D3
 #define DHTTYPE    DHT11     // DHT 11
 
 DHT dht(DHTPIN, DHTTYPE);
+//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 const char* ssid = "TP-LINK_ABE16A";
 const char* password = "";
@@ -152,39 +156,55 @@ void setup()
 }
 
 void loop(){  
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
-    // save the last time you updated the DHT values
-    previousMillis = currentMillis;
-    // Read temperature as Celsius (the default)
-    float newT = dht.readTemperature();
-    // Read temperature as Fahrenheit (isFahrenheit = true)
-    //float newT = dht.readTemperature(true);
-    // if temperature read failed, don't change t value
-    if (isnan(newT)) {
-      Serial.println("Failed to read from DHT sensor!");
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= interval) {
+        // save the last time you updated the DHT values
+        previousMillis = currentMillis;
+        // Read temperature as Celsius (the default)
+        float newT = dht.readTemperature();
+        // Read temperature as Fahrenheit (isFahrenheit = true)
+        //float newT = dht.readTemperature(true);
+        // if temperature read failed, don't change t value
+        if (isnan(newT)) {
+            Serial.println("Failed to read from DHT sensor!");
+        }
+        else {
+            t = newT;
+            Serial.println(t);
+        }
+        // Read Humidity
+        float newH = dht.readHumidity();
+        // if humidity read failed, don't change h value 
+        if (isnan(newH)) {
+            Serial.println("Failed to read from DHT sensor!");
+        }
+        else {
+            h = newH;
+            Serial.println(h);
+        }
+        digitalWrite(LED_1, HIGH);
+        digitalWrite(LED_3, HIGH);
+        digitalWrite(LED_5, HIGH);
+        delay(100);
+        digitalWrite(LED_1, LOW);
+        digitalWrite(LED_3, LOW);
+        digitalWrite(LED_5, LOW);
+        delay(2000);
     }
-    else {
-      t = newT;
-      Serial.println(t);
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println(".");
+        digitalWrite(LED_2, HIGH);
+        delay(200);
+        digitalWrite(LED_2, LOW);
+        digitalWrite(LED_4, HIGH);
+        delay(200);
+        digitalWrite(LED_4, LOW);
+        digitalWrite(LED_6, HIGH);
+        delay(200);
+        digitalWrite(LED_6, LOW);
     }
-    // Read Humidity
-    float newH = dht.readHumidity();
-    // if humidity read failed, don't change h value 
-    if (isnan(newH)) {
-      Serial.println("Failed to read from DHT sensor!");
+    else
+    {
+        Serial.println(WiFi.localIP());
     }
-    else {
-      h = newH;
-      Serial.println(h);
-    }
-    digitalWrite(LED_1, HIGH);
-    digitalWrite(LED_3, HIGH);
-    digitalWrite(LED_5, HIGH);
-    delay(100);
-    digitalWrite(LED_1, LOW);
-    digitalWrite(LED_3, LOW);
-    digitalWrite(LED_5, LOW);
-    delay(2000);
-  }
 }

@@ -59,6 +59,7 @@ int wifiStatus() {
     int i = 1000;
     while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
         display.println("Trying to connect...");
+        Serial.println("Trying to connect...");
         display.print(--i); Serial.print(' ');
         display.display();
         display.setCursor(0,0);
@@ -139,6 +140,10 @@ void setup() {
     display.print("connected!");
     display.println("IP: 10.0.1.23");
     display.println("Sending val #0");
+    Serial.print("Connecting to SSID\n'adafruit':");
+    Serial.print("connected!");
+    Serial.println("IP: 10.0.1.23");
+    Serial.println("Sending val #0");
     display.setCursor(0,0);
     display.display(); // actually display all of the above
 }
@@ -168,7 +173,10 @@ void rotaryMenu() {
         if (menu_digit < MENU_MIN)
             menu_digit = MENU_MAX;
         if (menu_digit == 1)
-            menuoption = menu_leds;
+        {
+          menuoption = menu_leds;
+            Serial.println("menu leds"); 
+        }
         if (menu_digit == 2)
             menuoption = menu_display;
         if (menu_digit == 3)
@@ -196,6 +204,7 @@ void rotaryMenu() {
                 display.clearDisplay();
                 display.setCursor(0,0);
                 display.print("Button pressed ");
+                Serial.println("Button pressed");
                 display.println(btnState);
                 display.print("Menu: ");
                 display.println(menuoption.name);
