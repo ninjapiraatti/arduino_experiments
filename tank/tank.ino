@@ -1,5 +1,6 @@
 
 #include <Stepper.h>
+#include <Servo.h>
 // Define Pins
 #define PIN_IN1 10
 #define PIN_IN2 9
@@ -9,6 +10,7 @@
 #define PIN_ST2 5
 #define PIN_ST3 4
 #define PIN_ST4 3
+#define PIN_SRV 2
 #define PIN_ENA A0
 #define PIN_ENB A1
 #define MAX_THROTTLE 255
@@ -17,7 +19,9 @@
 // Define number of steps per rotation:
 const int stepsPerRevolution = 2048;
 
-Stepper myStepper = Stepper(stepsPerRevolution, PIN_ST1, PIN_ST3, PIN_ST2, PIN_ST4); // Why are they in this order I do not know
+Servo servo;
+Stepper myStepper = Stepper(stepsPerRevolution, PIN_ST1, PIN_ST3, PIN_ST2, PIN_ST4);
+int angle = 10;
 
 void setup() 
 {
@@ -32,6 +36,8 @@ void setup()
   pinMode(PIN_ENA, OUTPUT);
   pinMode(PIN_ENB, OUTPUT);
   myStepper.setSpeed(15);
+  servo.attach(PIN_SRV);
+  servo.write(angle);
 
   // We'll use the serial monitor to view the sensor output
   Serial.begin(9600);
@@ -80,6 +86,11 @@ void gobackward(int time)
   digitalWrite(PIN_IN4, HIGH);
   myStepper.step(1000); 
   delay(time);
+  for(int angle = 10; angle < 180; angle++)  
+  {                                  
+    servo.write(angle);               
+    delay(15);                   
+  }
 }
 
 void stopengines(int time)
