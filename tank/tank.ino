@@ -1,6 +1,8 @@
 
 #include <Stepper.h>
 #include <Servo.h>
+#include <SPI.h>
+#include <WiFiNINA.h>
 // Define Pins
 #define PIN_IN1 10
 #define PIN_IN2 9
@@ -15,6 +17,14 @@
 #define PIN_ENB A1
 #define MAX_THROTTLE 255
 #define MIN_THROTTLE 120
+
+char ssid[] = "e33235";        // your network SSID (name)
+char pass[] = "231402922";    // your network password (use for WPA, or use as key for WEP)
+int keyIndex = 0;                           // your network key Index number (needed only for WEP)
+
+int status = WL_IDLE_STATUS;
+
+const int GMT = 2; //change this to adapt it to your time zone
 
 // Define number of steps per rotation:
 const int stepsPerRevolution = 2048;
@@ -41,7 +51,15 @@ void setup()
 
   // We'll use the serial monitor to view the sensor output
   Serial.begin(9600);
-
+  if (WiFi.status() == WL_NO_MODULE) {
+    Serial.println("Communication with WiFi module failed!");
+    // don't continue
+    while (true);
+  }
+  byte mac[6];
+  WiFi.macAddress(mac);
+  Serial.print("MAC: ");
+  printMacAddress(mac);
 }
 
 void turnright(int time)
@@ -86,11 +104,6 @@ void gobackward(int time)
   digitalWrite(PIN_IN4, HIGH);
   myStepper.step(1000); 
   delay(time);
-  for(int angle = 10; angle < 180; angle++)  
-  {                                  
-    servo.write(angle);               
-    delay(15);                   
-  }
 }
 
 void stopengines(int time)
@@ -100,9 +113,89 @@ void stopengines(int time)
   delay(time);
 }
 
+void scan_networks()
+{
+  Serial.println("Scanning available networks...");
+  listNetworks();
+  delay(1000);
+}
+
+void listNetworks() {
+  // scan for nearby networks:
+  Serial.println("** Scan Networks **");
+  int numSsid = WiFi.scanNetworks();
+  if (numSsid == -1) {
+    Serial.println("Couldn't get a wifi connection");
+    while (true);
+  }
+ 
+  // print the list of networks seen:
+  Serial.print("number of available networks:");
+  Serial.println(numSsid);
+ 
+  // print the network number and name for each network found:
+  for (int thisNet = 0; thisNet < numSsid; thisNet++) {
+    Serial.print(thisNet);
+    Serial.print(") ");
+    Serial.print(WiFi.SSID(thisNet));
+    Serial.print("\tSignal: ");
+    Serial.print(WiFi.RSSI(thisNet));
+    Serial.print(" dBm");
+    Serial.print("\tEncryption: ");
+    printEncryptionType(WiFi.encryptionType(thisNet));
+  }
+}
+ 
+void printEncryptionType(int thisType) {
+  // read the encryption type and print out the name:
+  switch (thisType) {
+    case ENC_TYPE_WEP:
+      Serial.println("WEP");
+      break;
+    case ENC_TYPE_TKIP:
+      Serial.println("WPA");
+      break;
+    case ENC_TYPE_CCMP:
+      Serial.println("WPA2");
+      break;
+    case ENC_TYPE_NONE:
+      Serial.println("None");
+      break;
+    case ENC_TYPE_AUTO:
+      Serial.println("Auto");
+      break;
+    case ENC_TYPE_UNKNOWN:
+    default:
+      Serial.println("Unknown");
+      break;
+  }
+}
+ 
+ 
+void printMacAddress(byte mac[]) {
+  for (int i = 5; i >= 0; i--) {
+    if (mac[i] < 16) {
+      Serial.print("0");
+    }
+    Serial.print(mac[i], HEX);
+    if (i > 0) {
+      Serial.print(":");
+    }
+  }
+  Serial.println();
+}
+
 void loop() 
 {
   Serial.print("Engine loop begin\n");
+  for(angle = 10; angle < 180; angle++)  
+  {                                  
+    servo.write(angle);   
+    Serial.print("Turning servo at");
+  Serial.print(angle);
+    delay(15);                   
+  }
+  scan_networks();
   gobackward(1000);
   stopengines(10);
   turnleft(100);
