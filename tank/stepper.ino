@@ -10,3 +10,7 @@ void setup_stepper() {
 	pinMode(PIN_ST4, OUTPUT);
 	myStepper.setSpeed(15);
 }
+
+void rotate_stepper(int time) {
+	myStepper.step(time);
+}

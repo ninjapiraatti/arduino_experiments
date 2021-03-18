@@ -8,3 +8,7 @@ void setup_servo() {
 	servo.attach(PIN_SRV);
 	servo.write(angle);
 }
+
+void turnservo(int angle) {
+	servo.write(angle); 
+}

@@ -12,6 +12,7 @@ void setup()
 	tft.initR(INITR_BLACKTAB);  // Initialize a ST7735S chip, black tab
 	tft.fillScreen(ST7735_BLACK);  // Fill screen with black
 	tft.setTextWrap(false);
+	tft.setRotation(1);
 	tft.setCursor(0, 0);  // Set position (x,y)
 	tft.setTextColor(ST7735_WHITE);  // Set color of text. First is the color of text and after is color of background
 	tft.setTextSize(1);  // Set text size. Goes from 0 (the smallest) to 20 (very big)
@@ -30,25 +31,15 @@ void setup()
 
 void loop() 
 {
-	/*
-	Serial.print("Engine loop begin\n");
-	for(angle = 10; angle < 180; angle++)  
-	{                                  
-	servo.write(angle);   
-	Serial.print("Turning servo at");
-	Serial.print(angle);
-	delay(15);                   
-	}
-	scan_networks();
-	gobackward(1000);
-	stopengines(10);
-	turnleft(100);
-	stopengines(800);
-	turnright(200);
-	stopengines(800);
-	turnleft(300);
-	stopengines(500);
-	*/
+	tft.fillScreen(ST7735_BLACK);  // Fill screen with black
+	tft.setCursor(0, 0);
+	tft.println("Henlo");  // Print a text or value
+	//rotate_stepper(200);
+	//delay(500);
+	//turnservo(150);
+	//delay(500);
+	//turnservo(0);
 	tft.fillRect(23, 67, 12, 18, ST7735_BLACK);
 	tft.println("Hello");  // Print a text or value
+	delay(2000);
 }
