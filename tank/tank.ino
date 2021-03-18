@@ -1,37 +1,5 @@
 
-#include <Stepper.h>
-#include <Servo.h>
-#include <SPI.h>
-#include <WiFiNINA.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_ST7735.h>
-#include <Fonts/FreeSerif18pt7b.h>
-
-
-// Define Pins
-#define PIN_IN1 10
-#define PIN_IN2 9
-#define PIN_IN3 8
-#define PIN_IN4 7
-
-#define PIN_ST1 6
-#define PIN_ST2 5
-#define PIN_ST3 4
-#define PIN_ST4 3
-
-#define PIN_SRV 2
-
-#define PIN_ENA A0
-#define PIN_ENB A1
-
-#define MAX_THROTTLE 255
-#define MIN_THROTTLE 120
-
-#define TFT_SCK 13
-#define TFT_MOSI 11
-#define TFT_CS 10
-#define TFT_RST 9
-#define TFT_DC 8
+#include "tank.h"
 
 char ssid[] = "e33235";        // your network SSID (name)
 char pass[] = "231402922";    // your network password (use for WPA, or use as key for WEP)
@@ -75,7 +43,6 @@ void setup()
 	tft.setTextSize(1);  // Set text size. Goes from 0 (the smallest) to 20 (very big)
 	tft.println("Hello");  // Print a text or value
 	// Start using a custom font:
-	tft.setFont(&FreeSerif18pt7b);  // Set a custom font
 	tft.setTextSize(0);  // Set text size. We are using custom font so you should always set text size as 0
 	// Write to the display the text "World":
 	tft.setCursor(0, 50);  // Set position (x,y)
