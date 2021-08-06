@@ -25,5 +25,5 @@ void loop()
 	//turnservo(0);
 	tft.fillRect(23, 67, 12, 18, ST7735_BLACK);
 	tft.println("Hello");  // Print a text or value
-	delay(2000);
+	delay(6000);
 }
