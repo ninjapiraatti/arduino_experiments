@@ -4,6 +4,7 @@
 #include <WiFiNINA.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
+#include <ArduinoMqttClient.h>
 
 // Define Pins
 #define PIN_IN1 10

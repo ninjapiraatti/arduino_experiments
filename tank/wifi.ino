@@ -5,7 +5,14 @@ char pass[] = "M6EQEH92A7G";    // your network password (use for WPA, or use as
 int keyIndex = 0;                           // your network key Index number (needed only for WEP)
 int status = WL_IDLE_STATUS;
 const int GMT = 2; //change this to adapt it to your time zone
-
+WiFiClient wifiClient;
+MqttClient mqttClient(wifiClient);
+// MQTT
+const char broker[] = "hairdresser.cloudmqtt.com";
+int        port     = 16995;
+const char topic[]  = "test";
+const char topic2[]  = "real_unique_topic_2";
+const char topic3[]  = "real_unique_topic_3";
 
 void setup_wifi() {
 	Serial.println("Trying to setup wifi.");
@@ -19,6 +26,12 @@ void setup_wifi() {
 	Serial.print("MAC: ");
 	printMacAddress(mac);
 	scan_networks();
+	if (!mqttClient.connect(broker, port)) {
+		Serial.print("MQTT connection failed! Error code = ");
+		Serial.println(mqttClient.connectError());
+
+		while (1);
+	}
 }
 
 void scan_networks()
@@ -48,8 +61,6 @@ void listNetworks() {
 		Serial.print(WiFi.SSID(thisNet));
 		Serial.print("\tSignal: ");
 		Serial.print(WiFi.RSSI(thisNet));
-		tft.print("\tSignal: ");
-		tft.print(WiFi.RSSI(thisNet));
 		Serial.print(" dBm");
 		Serial.print("\tEncryption: ");
 		printEncryptionType(WiFi.encryptionType(thisNet));
@@ -94,7 +105,22 @@ void printMacAddress(byte mac[]) {
 	Serial.println();
 }
 
-char *getMacAddress() {
-	return "mac";
+char *getWifiQuality() {
+	return ("Lol again.");
+}
+
+void poll_mqtt() {
+	mqttClient.beginMessage(topic);
+    mqttClient.print("hei");
+    mqttClient.endMessage();
+
+    mqttClient.beginMessage(topic2);
+    mqttClient.print("heitaas");
+    mqttClient.endMessage();
+
+    mqttClient.beginMessage(topic3);
+    mqttClient.print("heiviela");
+    mqttClient.endMessage();
+	mqttClient.poll();
 }
 

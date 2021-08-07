@@ -1,4 +1,5 @@
 #include "tank.h"
+#include "arduino_secrets.h"
 
 // Define TFT
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
@@ -26,11 +27,13 @@ void loop()
 	//delay(1500);
 	turnservo(90);
 	tft.println("Turning servo now."); 
-	delay(1000);
+	delay(500);
 	turnservo(120);
 	tft.fillScreen(ST7735_BLACK);
-	delay(1500);
+	delay(500);
 	tft.fillRect(23, 67, 12, 18, ST7735_BLACK);
-	tft.println(getMacAddress());  // Print a text or value
-	delay(6000);
+	tft.println(getWifiQuality());  // Print a text or value
+	delay(500);
+
+	poll_mqtt();
 }
