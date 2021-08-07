@@ -1,12 +1,14 @@
 #include "tank.h"
 
-char ssid[] = "e33235";        // your network SSID (name)
-char pass[] = "231402922";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "4G-Gateway-EF11";        // your network SSID (name)
+char pass[] = "M6EQEH92A7G";    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;                           // your network key Index number (needed only for WEP)
 int status = WL_IDLE_STATUS;
 const int GMT = 2; //change this to adapt it to your time zone
 
+
 void setup_wifi() {
+	Serial.println("Trying to setup wifi.");
 	if (WiFi.status() == WL_NO_MODULE) {
 		Serial.println("Communication with WiFi module failed!");
 		// don't continue
@@ -16,6 +18,7 @@ void setup_wifi() {
 	WiFi.macAddress(mac);
 	Serial.print("MAC: ");
 	printMacAddress(mac);
+	scan_networks();
 }
 
 void scan_networks()
@@ -45,6 +48,8 @@ void listNetworks() {
 		Serial.print(WiFi.SSID(thisNet));
 		Serial.print("\tSignal: ");
 		Serial.print(WiFi.RSSI(thisNet));
+		tft.print("\tSignal: ");
+		tft.print(WiFi.RSSI(thisNet));
 		Serial.print(" dBm");
 		Serial.print("\tEncryption: ");
 		printEncryptionType(WiFi.encryptionType(thisNet));
@@ -87,5 +92,9 @@ void printMacAddress(byte mac[]) {
 		}
 	}
 	Serial.println();
+}
+
+char *getMacAddress() {
+	return "mac";
 }
 

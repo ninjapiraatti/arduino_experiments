@@ -10,5 +10,5 @@ void setup_servo() {
 }
 
 void turnservo(int angle) {
-	servo.write(angle); 
+	servo.write(angle);
 }
