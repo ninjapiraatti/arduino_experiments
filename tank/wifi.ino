@@ -1,23 +1,14 @@
 #include "tank.h"
 
-char ssid[] = "4G-Gateway-EF11";        // your network SSID (name)
-char pass[] = "M6EQEH92A7G";    // your network password (use for WPA, or use as key for WEP)
-int keyIndex = 0;                           // your network key Index number (needed only for WEP)
+int keyIndex = 0;
 int status = WL_IDLE_STATUS;
 const int GMT = 2; //change this to adapt it to your time zone
-WiFiClient wifiClient;
-MqttClient mqttClient(wifiClient);
-// MQTT
-const char broker[] = "hairdresser.cloudmqtt.com";
-int        port     = 16995;
-const char topic[]  = "test";
-const char topic2[]  = "real_unique_topic_2";
-const char topic3[]  = "real_unique_topic_3";
 
 void setup_wifi() {
 	Serial.println("Trying to setup wifi.");
 	if (WiFi.status() == WL_NO_MODULE) {
 		Serial.println("Communication with WiFi module failed!");
+		showMessage("No WiFi module!!!", 2000, true);
 		// don't continue
 		while (true);
 	}
@@ -26,11 +17,12 @@ void setup_wifi() {
 	Serial.print("MAC: ");
 	printMacAddress(mac);
 	scan_networks();
-	if (!mqttClient.connect(broker, port)) {
-		Serial.print("MQTT connection failed! Error code = ");
-		Serial.println(mqttClient.connectError());
-
-		while (1);
+	while (WiFi.begin(SSID, PASS) != WL_CONNECTED) {
+		// failed, retry
+		Serial.print(".");
+		showMessage("Connecting", 0, false);
+		showMessage(". ", 0, false);
+		delay(1000);
 	}
 }
 
@@ -47,6 +39,7 @@ void listNetworks() {
 	int numSsid = WiFi.scanNetworks();
 	if (numSsid == -1) {
 		Serial.println("Couldn't get a wifi connection");
+		showMessage("No WiFi!!!", 2000, true);
 		while (true);
 	}
 
@@ -106,21 +99,6 @@ void printMacAddress(byte mac[]) {
 }
 
 char *getWifiQuality() {
-	return ("Lol again.");
-}
-
-void poll_mqtt() {
-	mqttClient.beginMessage(topic);
-    mqttClient.print("hei");
-    mqttClient.endMessage();
-
-    mqttClient.beginMessage(topic2);
-    mqttClient.print("heitaas");
-    mqttClient.endMessage();
-
-    mqttClient.beginMessage(topic3);
-    mqttClient.print("heiviela");
-    mqttClient.endMessage();
-	mqttClient.poll();
+	//return ("Lol again.");
 }
 

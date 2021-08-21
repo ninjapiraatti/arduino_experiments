@@ -5,6 +5,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <ArduinoMqttClient.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 // Define Pins
 #define PIN_IN1 10
