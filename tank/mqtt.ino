@@ -20,7 +20,7 @@ void reconnect () {
 	while (!mqttclient.connected()) {
 		Serial.print("Attempting MQTT connection...");
 		// Attempt to connect
-		if (mqttclient.connect("arduinoClient", "sdclgvuj", "3fXiuMjbQXyd")) {
+		if (mqttclient.connect("arduinoClient", TANKKI_USER, TANKKI_PASS)) {
 			Serial.println("connected");
 			// Once connected, publish an announcement...
 			// ... and resubscribe
