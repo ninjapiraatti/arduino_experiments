@@ -10,12 +10,16 @@ WiFiClient wifiClient;
 // Define TFT
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
 
+TankData data;
+
 void setup() 
 {
+	data.angle = 0;
+	data.humidity = 0;
 	int wifiStatus = 2;
 	Serial.begin(9600);
 	setup_tft(tft);
-	tft.fillScreen(ST7735_BLACK);  // Fill screen with black
+	tft.fillScreen(ST7735_BLACK);
 	tft.setCursor(0, 0);
 	tft.setTextColor(ST7735_WHITE);
 	tft.println("Henlo. Booting up:");
@@ -28,7 +32,7 @@ void setup()
 	}
 	tft.setCursor(0, 20);
 	tft.print("MQTT:");
-	if (setup_mqtt(tft) == 0) {
+	if (setup_mqtt(tft, data) == 0) {
 		animationSuccess(tft, 100, 20, 100);
 	} else {
 		animationFailure(tft, 100, 20, 100);
@@ -49,22 +53,29 @@ void setup()
 
 void loop() 
 {
-	poll_mqtt(tft);
-	turnservo(0);
-	tft.fillScreen(ST7735_BLACK);  // Fill screen with black
+	poll_mqtt(data);
+	getHumidity();
 	tft.setCursor(0, 0);
-	//Serial.println("Lol");
-	//tft.println("Rotating stepper now."); 
+	tft.setTextColor(0x07F9);
+	tft.println("MQTT Gadget 0.1"); 
+	tft.setCursor(0, 20);
+	tft.print("Servo angle:");
+	tft.fillRect(90, 20, 100, 10, 0x0000);
+	tft.setCursor(90, 20);
+	tft.print(data.angle);
+
+	tft.setCursor(0, 30);
+	tft.print("Humidity:");
+	tft.fillRect(90, 30, 100, 10, 0x0000);
+	tft.setCursor(90, 30);
+	tft.print(data.humidity);
 	//delay(1000);
 	//rotate_stepper(800);
 	//tft.fillScreen(ST7735_BLACK);  // Print a text or value
 	//delay(1500);
 	//Fturnservo(90);
 	//tft.println("Turning servo now."); 
-	delay(1500);
-	tft.fillScreen(ST7735_BLACK);
-	delay(500);
-	tft.fillRect(23, 67, 12, 18, ST7735_BLACK);
 	tft.println(getWifiQuality());  // Print a text or value
+	turnservo(data.angle);
 	delay(10000);
 }

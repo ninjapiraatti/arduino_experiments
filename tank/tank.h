@@ -1,3 +1,6 @@
+#ifndef TANK_H
+#define TANK_H
+
 #include <Stepper.h>
 #include <Servo.h>
 #include <SPI.h>
@@ -35,3 +38,10 @@
 #define TFT_CS 10
 #define TFT_RST 9
 #define TFT_DC 8
+
+// Data
+struct TankData{
+	int angle;
+	float humidity;
+};
+#endif

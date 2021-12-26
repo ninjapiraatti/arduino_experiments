@@ -1,3 +1,5 @@
+#include "tank.h"
+
 const char topic[]  = "test";
 const char topic2[]  = "real_unique_topic_2";
 const char topic3[]  = "real_unique_topic_3";
@@ -16,7 +18,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 	root.prettyPrintTo(Serial);
 	String msg = root["msg"].as<String>();
 	int angle = msg.toInt();
-	turnservo(angle);
+	data.angle = angle;
 	//Serial.println(root);
 	Serial.println(msg);
 }
@@ -24,7 +26,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 // Define MQTT
 PubSubClient mqttclient(TANKKI_URL, TANKKI_PORT, callback, wifiClient);
 
-int setup_mqtt(Adafruit_ST7735 tft) {
+int setup_mqtt(Adafruit_ST7735 tft, TankData data) {
 	Serial.println("Trying to setup MQTT.");
 	animationPending(tft, 100, 20, 100);
 	if (mqttclient.connect("arduinoClient", TANKKI_USER, TANKKI_PASS)) {
@@ -36,7 +38,7 @@ int setup_mqtt(Adafruit_ST7735 tft) {
 	return(0);
 }
 
-int reconnect (Adafruit_ST7735 tft) {
+int reconnect () {
 	while (!mqttclient.connected()) {
 		Serial.print("Attempting MQTT connection...");
 		// Attempt to connect
@@ -53,7 +55,7 @@ int reconnect (Adafruit_ST7735 tft) {
 	}
 }
 
-int poll_mqtt(Adafruit_ST7735 tft) {
+int poll_mqtt(TankData data) {
 	StaticJsonBuffer<300> JSONbuffer;
 	JsonObject& JSONencoder = JSONbuffer.createObject();
 	
@@ -62,7 +64,7 @@ int poll_mqtt(Adafruit_ST7735 tft) {
 	JSONencoder["msg"] = "Henlo iot world";
 	JsonArray& values = JSONencoder.createNestedArray("values");
 	
-	values.add(getHumidity());
+	values.add(data.humidity);
 	
 	char JSONmessageBuffer[100];
 	JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
@@ -78,10 +80,9 @@ int poll_mqtt(Adafruit_ST7735 tft) {
 	mqttclient.loop();
 	Serial.println("-------------");
 	if (!mqttclient.connected()) {
-		reconnect(tft);
+		reconnect();
 		return (-1);
 	} else {
-		tft.println("MQTT connection OK");
 		return (0);
 	}
 }

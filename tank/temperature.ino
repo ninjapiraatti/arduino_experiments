@@ -7,8 +7,8 @@ int setup_temperature(Adafruit_ST7735 tft) {
 	dht.begin();
 }
 
-float getHumidity () {
+void getHumidity () {
 	float newH = dht.readHumidity();
 	Serial.println(newH);
-	return newH;
+	data.humidity = newH;
 }
