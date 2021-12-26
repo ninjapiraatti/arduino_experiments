@@ -1,6 +1,7 @@
 #include <Stepper.h>
 #include <Servo.h>
 #include <SPI.h>
+#include <DHT.h>
 #include <WiFiNINA.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
@@ -20,6 +21,8 @@
 #define PIN_ST4 3
 
 #define PIN_SRV 2
+
+#define PIN_TEMPERATURE 14
 
 #define PIN_ENA A0
 #define PIN_ENB A1

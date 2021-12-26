@@ -2,21 +2,41 @@ const char topic[]  = "test";
 const char topic2[]  = "real_unique_topic_2";
 const char topic3[]  = "real_unique_topic_3";
 
+DynamicJsonBuffer jb;
 
-
-void setup_mqtt() {
-	Serial.println("Trying to setup MQTT.");
-	if (mqttclient.connect("arduinoClient", TANKKI_USER, TANKKI_PASS)) {
-		mqttclient.subscribe("test");
-		tft.println("Connected to Heroku");
-		delay(5000);
-	} else {
-		tft.println("NO MQTT");
-		delay(5000);
-	}
+// MQTT Callback function
+void callback(char* topic, byte* payload, unsigned int length) {
+	Serial.print("Message arrived [");
+	Serial.print(topic);
+	Serial.print("] ");
+	JsonObject& root = jb.parseObject(payload);
+	//   for (int i=0;i<length;i++) {
+	//     tft.print((char)payload[i]);
+	//   }
+	root.prettyPrintTo(Serial);
+	String msg = root["msg"].as<String>();
+	int angle = msg.toInt();
+	turnservo(angle);
+	//Serial.println(root);
+	Serial.println(msg);
 }
 
-void reconnect () {
+// Define MQTT
+PubSubClient mqttclient(TANKKI_URL, TANKKI_PORT, callback, wifiClient);
+
+int setup_mqtt(Adafruit_ST7735 tft) {
+	Serial.println("Trying to setup MQTT.");
+	animationPending(tft, 100, 20, 100);
+	if (mqttclient.connect("arduinoClient", TANKKI_USER, TANKKI_PASS)) {
+		mqttclient.setCallback(callback);
+		mqttclient.subscribe("test");
+	} else {
+		animationPending(tft, 100, 20, 1000);
+	}
+	return(0);
+}
+
+int reconnect (Adafruit_ST7735 tft) {
 	while (!mqttclient.connected()) {
 		Serial.print("Attempting MQTT connection...");
 		// Attempt to connect
@@ -25,19 +45,15 @@ void reconnect () {
 			// Once connected, publish an announcement...
 			// ... and resubscribe
 			mqttclient.subscribe("test");
+			return (0);
 		} else {
-			tft.fillScreen(ST7735_BLACK);  // Fill screen with black
-			tft.setCursor(0, 0);
-			tft.println("failed, rc=");
-			tft.print(mqttclient.state());
 			Serial.println(" try again in 5 seconds");
-		// Wait 5 seconds before retrying
-		delay(5000);
+			return (-1);
 		}
 	}
 }
 
-void poll_mqtt() {
+int poll_mqtt(Adafruit_ST7735 tft) {
 	StaticJsonBuffer<300> JSONbuffer;
 	JsonObject& JSONencoder = JSONbuffer.createObject();
 	
@@ -46,9 +62,7 @@ void poll_mqtt() {
 	JSONencoder["msg"] = "Henlo iot world";
 	JsonArray& values = JSONencoder.createNestedArray("values");
 	
-	values.add(20);
-	values.add(21);
-	values.add(23);
+	values.add(getHumidity());
 	
 	char JSONmessageBuffer[100];
 	JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
@@ -64,10 +78,10 @@ void poll_mqtt() {
 	mqttclient.loop();
 	Serial.println("-------------");
 	if (!mqttclient.connected()) {
-		reconnect();
+		reconnect(tft);
+		return (-1);
 	} else {
 		tft.println("MQTT connection OK");
+		return (0);
 	}
-	
-	delay(10000);
 }

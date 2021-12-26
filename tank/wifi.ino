@@ -4,33 +4,31 @@ int keyIndex = 0;
 int status = WL_IDLE_STATUS;
 const int GMT = 2; //change this to adapt it to your time zone
 
-void setup_wifi() {
+int setup_wifi(Adafruit_ST7735 tft) {
 	Serial.println("Trying to setup wifi.");
+	animationPending(tft, 100, 10, 500);
 	if (WiFi.status() == WL_NO_MODULE) {
 		Serial.println("Communication with WiFi module failed!");
-		showMessage("No WiFi module!!!", 2000, true);
 		// don't continue
-		while (true);
+		// while (true);
+		return (-1);
 	}
 	byte mac[6];
 	WiFi.macAddress(mac);
 	Serial.print("MAC: ");
 	printMacAddress(mac);
-	scan_networks();
-	while (WiFi.begin(SSID, PASS) != WL_CONNECTED) {
-		// failed, retry
-		Serial.print(".");
-		showMessage("Connecting", 0, false);
-		showMessage(". ", 0, false);
-		delay(1000);
+	scan_networks(tft);
+	if (WiFi.begin(SSID, PASS) != WL_CONNECTED) {
+		return (-1);
 	}
+	return (0);
 }
 
-void scan_networks()
+void scan_networks(Adafruit_ST7735 tft)
 {
 	Serial.println("Scanning available networks...");
 	listNetworks();
-	delay(1000);
+	animationPending(tft, 100, 10, 500);
 }
 
 void listNetworks() {
@@ -39,7 +37,6 @@ void listNetworks() {
 	int numSsid = WiFi.scanNetworks();
 	if (numSsid == -1) {
 		Serial.println("Couldn't get a wifi connection");
-		showMessage("No WiFi!!!", 2000, true);
 		while (true);
 	}
 
